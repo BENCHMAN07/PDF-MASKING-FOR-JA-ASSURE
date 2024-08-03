@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Form Extractor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle, #1f1c2c, #928dab);
+            color: #e0e0e0;
+            position: relative;
+            animation: bgAnimate 15s infinite alternate;
+        }
+        @keyframes bgAnimate {
+            0% { background: radial-gradient(circle, #1f1c2c, #928dab); }
+            100% { background: radial-gradient(circle, #2b2a3b, #9d7b8f); }
+        }
+
+        .background-3d {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            animation: rotate 30s infinite linear;
+            z-index: -1;
+        }
+        @keyframes rotate {
+            from { transform: rotateX(0deg) rotateY(0deg); }
+            to { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        .background-3d .cube {
+            position: absolute;
+            width: 150vmin;
+            height: 150vmin;
+            transform-style: preserve-3d;
+            transform: translateZ(-250px);
+        }
+        .background-3d .cube div {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.3);
+        }
+        .background-3d .front { transform: rotateY(0deg) translateZ(150px); }
+        .background-3d .back { transform: rotateY(180deg) translateZ(150px); }
+        .background-3d .left { transform: rotateY(-90deg) translateZ(150px); }
+        .background-3d .right { transform: rotateY(90deg) translateZ(150px); }
+        .background-3d .top { transform: rotateX(90deg) translateZ(150px); }
+        .background-3d .bottom { transform: rotateX(-90deg) translateZ(150px); }
+
+        .container {
+            width: 90%;
+            max-width: 1400px; /* Increased max-width */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(40, 44, 52, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            animation: fadeIn 1s ease-in-out;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: textFadeIn 2s ease-in-out;
+        }
+        @keyframes textFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header h1 {
+            color: #f5f5f5;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            animation: textGlow 2s infinite alternate, pulse 1.5s infinite;
+        }
+        @keyframes textGlow {
+            from { text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 25px rgba(255, 255, 255, 1); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .header form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .header input[type="file"] {
+            display: none;
+        }
+        .header label {
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1000px) rotateY(0deg);
+        }
+        .header label:hover {
+            background-color: #555;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+            transform: perspective(1000px) rotateY(10deg);
+        }
+        .header button {
+            background-color: #0056b3;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1000px) rotateX(0deg);
+        }
+        .header button:hover {
+            background-color: #003f8a;
+            transform: perspective(1000px) rotateX(10deg);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+        }
+        .content {
+            display: flex;
+            width: 100%;
+            height: 90vh; /* Increased height */
+            margin-top: 20px;
+            perspective: 1000px;
+        }
+        .preview, .result {
+            width: 50%;
+            background-color: #333;
+            padding: 20px; /* Increased padding */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            overflow: auto;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .preview h2, .result h2 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        iframe {
+            width: 100%;
+            height: 85vh; /* Increased iframe height */
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+        iframe:hover {
+            transform: scale(1.1);
+        }
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 5s infinite;
+        }
+        @keyframes float {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-50vh) scale(0.5); }
+        }
+        .particle:nth-child(odd) {
+            animation-duration: 7s;
+            animation-timing-function: ease-in-out;
+        }
+        .particle:nth-child(even) {
+            animation-duration: 8s;
+            animation-timing-function: ease-in;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-3d">
+        <div class="cube">
+            <div class="front"></div>
+            <div class="back"></div>
+            <div class="left"></div>
+            <div class="right"></div>
+            <div class="top"></div>
+            <div class="bottom"></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>PDF Form Masking</h1>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label for="fileInput">Choose File</label>
+                <input type="file" id="fileInput" accept=".pdf">
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+        <div class="content">
+            <div class="preview" id="filePreviewContainer" style="display: none;">
+                <h2>Preview</h2>
+                <iframe id="filePreview" src=""></iframe>
+            </div>
+            <div class="result" id="resultContainer" style="display: none;">
+                <h2>Masked</h2>
+                <iframe id="maskedFilePreview" src=""></iframe>
+            </div>
+        </div>
+    </div>
+    <!-- Adding floating particles -->
+    <div class="particle" style="left: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 60%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 80%; animation-delay: 3s;"></div>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData();
+            var fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data);
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    var filePreviewContainer = document.getElementById('filePreviewContainer');
+                    var resultContainer = document.getElementById('resultContainer');
+                    var filePreview = document.getElementById('filePreview');
+                    var maskedFilePreview = document.getElementById('maskedFilePreview');
+
+                    if (data.file_url) {
+                        filePreview.src = data.file_url;
+                        console.log('File URL:', data.file_url);
+                    } else {
+                        console.warn('file_url not provided in response');
+                    }
+
+                    if (data.masked_file_url) {
+                        maskedFilePreview.src = data.masked_file_url;
+                        console.log('Masked File URL:', data.masked_file_url);
+                    } else {
+                        console.warn('masked_file_url not provided in response');
+                    }
+
+                    filePreviewContainer.style.display = 'flex';
+                    resultContainer.style.display = 'flex';
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error: ' + error.message);
+            });
+        });
+    </script>
+</body>
+</html>
